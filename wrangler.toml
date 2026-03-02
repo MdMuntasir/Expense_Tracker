@@ -1,6 +1,7 @@
 name = "expense-tracker"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
+account_id = "0835b81da7b08adcc3f63be70c710f65"
 
 [assets]
 directory = "./frontend/dist"
@@ -9,7 +10,7 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "expense-tracker-db"
-database_id = "placeholder-run-wrangler-d1-create"
+database_id = "c37c92ed-0509-4dbe-90af-d8f35d8382dc"
 
 [vars]
-FRONTEND_URL = "https://expense-tracker.workers.dev"
+FRONTEND_URL = "https://expense-tracker.md-muntasir2700.workers.dev"
