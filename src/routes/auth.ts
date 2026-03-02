@@ -122,7 +122,7 @@ auth.get('/me', async (c) => {
   if (!token) return c.json({ user: null })
 
   try {
-    const payload = await verify(token, c.env.JWT_SECRET)
+    const payload = await verify(token, c.env.JWT_SECRET, 'HS256')
     const user = await c.env.DB.prepare(
       'SELECT id, name, email, avatar FROM users WHERE id = ?'
     ).bind(payload.sub).first()
