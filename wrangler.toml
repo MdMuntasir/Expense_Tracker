@@ -3,6 +3,9 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 account_id = "0835b81da7b08adcc3f63be70c710f65"
 
+[observability]
+enabled = true
+
 [assets]
 directory = "./frontend/dist"
 binding = "ASSETS"

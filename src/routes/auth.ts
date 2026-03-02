@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { sign } from 'hono/jwt'
+import { sign, verify } from 'hono/jwt'
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 
 type Env = {
@@ -27,11 +27,11 @@ auth.get('/google', (c) => {
 // GET /api/auth/google/callback — exchange code for tokens
 auth.get('/google/callback', async (c) => {
   const code = c.req.query('code')
-  if (!code) {
-    return c.redirect(`${c.env.FRONTEND_URL}/login?error=no_code`)
-  }
-
   const origin = new URL(c.req.url).origin
+
+  if (!code) {
+    return c.redirect(`${origin}/login?error=no_code`)
+  }
 
   // Exchange code for tokens
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -47,7 +47,9 @@ auth.get('/google/callback', async (c) => {
   })
 
   if (!tokenRes.ok) {
-    return c.redirect(`${c.env.FRONTEND_URL}/login?error=token_exchange`)
+    const errBody = await tokenRes.text()
+    console.error('[auth] Token exchange failed:', tokenRes.status, errBody)
+    return c.redirect(`${origin}/login?error=token_exchange`)
   }
 
   const tokens = await tokenRes.json() as { access_token: string }
@@ -58,7 +60,8 @@ auth.get('/google/callback', async (c) => {
   })
 
   if (!profileRes.ok) {
-    return c.redirect(`${c.env.FRONTEND_URL}/login?error=profile_fetch`)
+    console.error('[auth] Profile fetch failed:', profileRes.status)
+    return c.redirect(`${origin}/login?error=profile_fetch`)
   }
 
   const profile = await profileRes.json() as {
@@ -100,7 +103,7 @@ auth.get('/google/callback', async (c) => {
     c.env.JWT_SECRET
   )
 
-  // Set cookie and redirect
+  // Set cookie and redirect back to the same origin (works for both local dev and production)
   setCookie(c, 'token', jwt, {
     httpOnly: true,
     secure: true,
@@ -109,7 +112,8 @@ auth.get('/google/callback', async (c) => {
     maxAge: 60 * 60 * 24 * 7,
   })
 
-  return c.redirect(c.env.FRONTEND_URL + '/')
+  console.log('[auth] Login success, user:', profile.id, 'new:', !existing)
+  return c.redirect(origin + '/')
 })
 
 // GET /api/auth/me
@@ -118,13 +122,14 @@ auth.get('/me', async (c) => {
   if (!token) return c.json({ user: null })
 
   try {
-    const { verify } = await import('hono/jwt')
     const payload = await verify(token, c.env.JWT_SECRET)
     const user = await c.env.DB.prepare(
       'SELECT id, name, email, avatar FROM users WHERE id = ?'
     ).bind(payload.sub).first()
+    if (!user) console.warn('[auth] /me: JWT valid but user not found in DB, sub:', payload.sub)
     return c.json({ user })
-  } catch {
+  } catch (err) {
+    console.error('[auth] /me: JWT verification failed:', err)
     return c.json({ user: null })
   }
 })
