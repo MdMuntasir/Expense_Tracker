@@ -1,0 +1,2 @@
+-- Initial schema applied manually via schema.sql
+-- This migration is intentionally empty so wrangler can track migration state.

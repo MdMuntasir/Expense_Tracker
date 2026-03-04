@@ -57,11 +57,31 @@ dashboard.get('/', async (c) => {
     LIMIT 5
   `).bind(userId).all()
 
+  // Fixed expenses aggregation
+  const fixedExpAgg = await c.env.DB.prepare(`
+    SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count
+    FROM fixed_expenses
+    WHERE user_id = ? AND is_active = 1
+  `).bind(userId).first() as { total: number; count: number }
+
+  const fixedExpList = await c.env.DB.prepare(`
+    SELECT fe.*, c.name as category_name, c.color as category_color, s.name as source_name
+    FROM fixed_expenses fe
+    LEFT JOIN categories c ON fe.category_id = c.id
+    LEFT JOIN sources s ON fe.source_id = s.id
+    WHERE fe.user_id = ? AND fe.is_active = 1
+    ORDER BY fe.next_due_date ASC, fe.created_at DESC
+  `).bind(userId).all()
+
   return c.json({
     totalBalance: balanceResult.total,
     monthlyData: monthlyData.results,
     categoryData: categoryData.results,
     recentTransactions: recentTx.results,
+    fixedExpensesTotal: fixedExpAgg.total,
+    fixedExpensesCount: fixedExpAgg.count,
+    availableBalance: balanceResult.total - fixedExpAgg.total,
+    fixedExpenses: fixedExpList.results,
   })
 })
 

@@ -60,6 +60,18 @@ export const api = {
 
   // Dashboard
   getDashboard: () => request<DashboardData>('/api/dashboard'),
+
+  // Fixed Expenses
+  getFixedExpenses: (inactive?: boolean) =>
+    request<FixedExpense[]>(`/api/fixed-expenses${inactive ? '?inactive=1' : ''}`),
+  createFixedExpense: (data: CreateFixedExpenseData) =>
+    request<FixedExpense>('/api/fixed-expenses', { method: 'POST', body: JSON.stringify(data) }),
+  updateFixedExpense: (id: number, data: Partial<CreateFixedExpenseData>) =>
+    request<FixedExpense>(`/api/fixed-expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteFixedExpense: (id: number) =>
+    request<{ ok: boolean }>(`/api/fixed-expenses/${id}`, { method: 'DELETE' }),
+  payFixedExpense: (id: number) =>
+    request<{ ok: boolean }>(`/api/fixed-expenses/${id}/pay`, { method: 'POST' }),
 }
 
 // Types
@@ -124,6 +136,37 @@ export interface DashboardData {
   monthlyData: { month: string; income: number; expense: number }[]
   categoryData: { category: string; color: string; amount: number }[]
   recentTransactions: Transaction[]
+  fixedExpensesTotal: number
+  fixedExpensesCount: number
+  availableBalance: number
+  fixedExpenses: FixedExpense[]
+}
+
+export interface FixedExpense {
+  id: number
+  user_id: string
+  title: string
+  amount: number
+  category_id: number | null
+  source_id: number | null
+  frequency: 'one-time' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+  next_due_date: string | null
+  notes: string | null
+  is_active: number
+  created_at: string
+  category_name: string | null
+  category_color: string | null
+  source_name: string | null
+}
+
+export interface CreateFixedExpenseData {
+  title: string
+  amount: number
+  category_id?: number | null
+  source_id?: number | null
+  frequency?: string
+  next_due_date?: string | null
+  notes?: string | null
 }
 
 export interface TransactionQuery {
