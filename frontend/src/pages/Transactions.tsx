@@ -166,8 +166,18 @@ export default function Transactions() {
                     <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                       <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{format(parseISO(tx.date), 'MMM d, yy')}</td>
                       <td className="px-4 py-3">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{tx.title}</p>
-                        {tx.description && <p className="text-xs text-gray-400 dark:text-gray-500">{tx.description}</p>}
+                        <div className="flex items-center gap-2">
+                          {tx.category_color && (
+                            <span
+                              className="sm:hidden flex-shrink-0 w-2 h-2 rounded-full"
+                              style={{ backgroundColor: tx.category_color }}
+                            />
+                          )}
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{tx.title}</p>
+                            {tx.description && <p className="text-xs text-gray-400 dark:text-gray-500">{tx.description}</p>}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
                         {tx.category_name ? (
