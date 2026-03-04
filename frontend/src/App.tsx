@@ -6,7 +6,6 @@ import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
 import Sources from './pages/Sources'
 import Categories from './pages/Categories'
-import Transfers from './pages/Transfers'
 import Layout from './components/layout/Layout'
 
 interface AuthContextValue {
@@ -74,7 +73,6 @@ export default function App() {
                     <Route path="/transactions" element={<Transactions />} />
                     <Route path="/sources" element={<Sources />} />
                     <Route path="/categories" element={<Categories />} />
-                    <Route path="/transfers" element={<Transfers />} />
                   </Routes>
                 </Layout>
               </RequireAuth>
