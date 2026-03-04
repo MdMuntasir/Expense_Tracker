@@ -14,23 +14,23 @@ export default function Login() {
   const error = params.get('error')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm text-center">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-10 w-full max-w-sm text-center">
         <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
           <span className="text-white text-2xl font-bold">ET</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Expense Tracker</h1>
-        <p className="text-gray-500 text-sm mb-8">Track your income & expenses</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Expense Tracker</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Track your income & expenses</p>
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+          <div className="mb-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3">
             Authentication failed. Please try again.
           </div>
         )}
 
         <a
           href="/api/auth/google"
-          className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-3 w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>

@@ -14,6 +14,8 @@ const PRESET_COLORS = [
   '#EC4899', '#6B7280',
 ]
 
+const inputClass = "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+
 export default function AddExpenseModal({ onClose, onSuccess }: AddExpenseModalProps) {
   const [sources, setSources] = useState<Source[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -83,45 +85,45 @@ export default function AddExpenseModal({ onClose, onSuccess }: AddExpenseModalP
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white">
-          <h2 className="text-lg font-semibold text-gray-900">Add Expense</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add Expense</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><X size={20} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+          {error && <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">{error}</p>}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title *</label>
             <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              className={inputClass}
               value={title} onChange={e => setTitle(e.target.value)} required placeholder="e.g. Groceries"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
             <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              className={inputClass}
               value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount *</label>
               <input
                 type="number" min="0.01" step="0.01"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                className={inputClass}
                 value={amount} onChange={e => setAmount(e.target.value)} required placeholder="0.00"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date *</label>
               <input
                 type="date"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                className={inputClass}
                 value={date} onChange={e => setDate(e.target.value)} required
               />
             </div>
@@ -129,20 +131,20 @@ export default function AddExpenseModal({ onClose, onSuccess }: AddExpenseModalP
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
               <button
                 type="button"
                 onClick={() => setShowNewCat(v => !v)}
-                className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
               >
                 <Plus size={12} /> New
               </button>
             </div>
 
             {showNewCat && (
-              <div className="mb-2 p-3 border border-dashed border-gray-300 rounded-lg space-y-2 bg-gray-50">
+              <div className="mb-2 p-3 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg space-y-2 bg-gray-50 dark:bg-gray-800">
                 <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Category name" value={newCatName} onChange={e => setNewCatName(e.target.value)}
                 />
                 <div className="flex gap-1.5 flex-wrap">
@@ -150,7 +152,7 @@ export default function AddExpenseModal({ onClose, onSuccess }: AddExpenseModalP
                     <button
                       type="button" key={c}
                       onClick={() => setNewCatColor(c)}
-                      className={`w-6 h-6 rounded-full border-2 ${newCatColor === c ? 'border-gray-900' : 'border-transparent'}`}
+                      className={`w-6 h-6 rounded-full border-2 ${newCatColor === c ? 'border-gray-900 dark:border-gray-100' : 'border-transparent'}`}
                       style={{ backgroundColor: c }}
                     />
                   ))}
@@ -165,7 +167,7 @@ export default function AddExpenseModal({ onClose, onSuccess }: AddExpenseModalP
             )}
 
             <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              className={inputClass}
               value={categoryId} onChange={e => setCategoryId(Number(e.target.value))}
             >
               <option value="">None</option>
@@ -174,9 +176,9 @@ export default function AddExpenseModal({ onClose, onSuccess }: AddExpenseModalP
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Source</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              className={inputClass}
               value={sourceId} onChange={e => setSourceId(Number(e.target.value))}
             >
               {sources.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -185,7 +187,7 @@ export default function AddExpenseModal({ onClose, onSuccess }: AddExpenseModalP
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
               Cancel
             </button>
             <button type="submit" disabled={saving}

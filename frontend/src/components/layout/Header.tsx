@@ -1,5 +1,6 @@
-import { Plus, Minus, LogOut } from 'lucide-react'
+import { Plus, Minus, LogOut, Sun, Moon } from 'lucide-react'
 import { useAuth } from '../../App'
+import { useTheme } from '../../App'
 import { api } from '../../api/client'
 
 interface HeaderProps {
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 export default function Header({ onAddIncome, onAddExpense }: HeaderProps) {
   const { user, setUser } = useAuth()
+  const { dark, toggle } = useTheme()
 
   async function handleLogout() {
     await api.logout()
@@ -17,8 +19,8 @@ export default function Header({ onAddIncome, onAddExpense }: HeaderProps) {
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between">
-      <h1 className="text-lg sm:text-xl font-bold text-gray-900">Expense Tracker</h1>
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 flex items-center justify-between">
+      <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">Expense Tracker</h1>
 
       <div className="flex items-center gap-2 sm:gap-3">
         <button
@@ -36,7 +38,15 @@ export default function Header({ onAddIncome, onAddExpense }: HeaderProps) {
           <span className="hidden sm:inline">Expense</span>
         </button>
 
-        <div className="flex items-center gap-2 ml-2">
+        <button
+          onClick={toggle}
+          className="p-1.5 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md transition-colors"
+          title="Toggle theme"
+        >
+          {dark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+
+        <div className="flex items-center gap-2 ml-1">
           {user?.avatar ? (
             <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
           ) : (
@@ -44,10 +54,10 @@ export default function Header({ onAddIncome, onAddExpense }: HeaderProps) {
               {user?.name?.[0]?.toUpperCase()}
             </div>
           )}
-          <span className="text-sm text-gray-700 hidden sm:block">{user?.name}</span>
+          <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">{user?.name}</span>
           <button
             onClick={handleLogout}
-            className="p-1.5 text-gray-400 hover:text-gray-700 rounded-md transition-colors"
+            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-md transition-colors"
             title="Logout"
           >
             <LogOut size={18} />
