@@ -32,7 +32,7 @@ dashboard.get('/', async (c) => {
     ORDER BY month ASC
   `).bind(userId).all()
 
-  // Category spending — current month
+  // Category spending — all time
   const categoryData = await c.env.DB.prepare(`
     SELECT
       COALESCE(c.name, 'Uncategorized') as category,
@@ -42,7 +42,6 @@ dashboard.get('/', async (c) => {
     LEFT JOIN categories c ON t.category_id = c.id
     WHERE t.user_id = ?
       AND t.type = 'expense'
-      AND strftime('%Y-%m', t.date) = strftime('%Y-%m', 'now')
     GROUP BY t.category_id
     ORDER BY amount DESC
   `).bind(userId).all()

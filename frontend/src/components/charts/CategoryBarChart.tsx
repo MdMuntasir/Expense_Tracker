@@ -10,7 +10,7 @@ export default function CategoryBarChart({ data }: CategoryBarChartProps) {
   if (!data.length) {
     return (
       <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
-        No expenses this month
+        No expenses yet
       </div>
     )
   }
