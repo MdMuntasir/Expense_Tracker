@@ -38,9 +38,14 @@ app.route('/api/transfers', transfersRoutes)
 app.route('/api/dashboard', dashboardRoutes)
 app.route('/api/fixed-expenses', fixedExpensesRoutes)
 
-// Serve frontend assets for all non-API routes
+// Serve frontend assets for all non-API routes, fallback to index.html for SPA routing
 app.get('*', async (c) => {
-  return c.env.ASSETS.fetch(c.req.raw)
+  const res = await c.env.ASSETS.fetch(c.req.raw)
+  if (res.status === 404) {
+    const indexUrl = new URL('/', c.req.url)
+    return c.env.ASSETS.fetch(new Request(indexUrl.toString(), c.req.raw))
+  }
+  return res
 })
 
 export default app
