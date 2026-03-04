@@ -17,10 +17,10 @@ export default function CategoryBarChart({ data }: CategoryBarChartProps) {
 
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-        <XAxis type="number" tick={{ fontSize: 12 }} tickFormatter={v => `৳${v}`} />
-        <YAxis dataKey="category" type="category" tick={{ fontSize: 12 }} width={90} />
+        <XAxis type="number" tick={{ fontSize: 12 }} tickFormatter={v => `৳${v.toLocaleString()}`} width={70} />
+        <YAxis dataKey="category" type="category" tick={{ fontSize: 12 }} width={100} />
         <Tooltip formatter={(v: number) => `৳${v.toLocaleString()}`} />
         <Bar dataKey="amount" name="Amount" radius={[0, 3, 3, 0]}>
           {data.map((entry, i) => (
