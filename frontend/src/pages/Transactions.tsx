@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api, Transaction, Category, Source } from '../api/client'
 import { format, parseISO } from 'date-fns'
-import { Trash2, Filter } from 'lucide-react'
+import { Trash2, Pencil, Filter } from 'lucide-react'
+import EditTransactionModal from '../components/modals/EditTransactionModal'
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [sources, setSources] = useState<Source[]>([])
   const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<Transaction | null>(null)
 
   // Filters
   const [type, setType] = useState('')
@@ -125,7 +127,7 @@ export default function Transactions() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden sm:table-cell">Category</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden md:table-cell">Source</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Amount</th>
-                <th className="px-4 py-3 w-10"></th>
+                <th className="px-4 py-3 w-20"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
@@ -153,9 +155,14 @@ export default function Transactions() {
                     {tx.type === 'income' ? '+' : '-'}৳{tx.amount.toLocaleString()}
                   </td>
                   <td className="px-4 py-3">
-                    <button onClick={() => handleDelete(tx.id)} className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors">
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => setEditing(tx)} className="text-gray-300 dark:text-gray-600 hover:text-indigo-500 transition-colors">
+                        <Pencil size={15} />
+                      </button>
+                      <button onClick={() => handleDelete(tx.id)} className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -182,6 +189,14 @@ export default function Transactions() {
           Next
         </button>
       </div>
+
+      {editing && (
+        <EditTransactionModal
+          transaction={editing}
+          onClose={() => setEditing(null)}
+          onSuccess={() => { setEditing(null); fetchTransactions() }}
+        />
+      )}
     </div>
   )
 }

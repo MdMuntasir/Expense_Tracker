@@ -44,6 +44,8 @@ export const api = {
     request<Transaction[]>('/api/transactions?' + new URLSearchParams(params as Record<string, string>).toString()),
   createTransaction: (data: CreateTransactionData) =>
     request<Transaction>('/api/transactions', { method: 'POST', body: JSON.stringify(data) }),
+  updateTransaction: (id: number, data: Omit<CreateTransactionData, 'type'>) =>
+    request<Transaction>(`/api/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteTransaction: (id: number) =>
     request<{ ok: boolean }>(`/api/transactions/${id}`, { method: 'DELETE' }),
 

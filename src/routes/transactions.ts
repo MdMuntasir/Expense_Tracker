@@ -85,6 +85,68 @@ transactions.post('/', async (c) => {
   return c.json(tx, 201)
 })
 
+// PUT /api/transactions/:id
+transactions.put('/:id', async (c) => {
+  const userId = c.get('userId')
+  const id = c.req.param('id')
+  const body = await c.req.json() as {
+    title: string
+    description?: string
+    amount: number
+    date: string
+    category_id?: number
+    source_id: number
+  }
+
+  if (!body.title || !body.amount || !body.date || !body.source_id) {
+    return c.json({ error: 'title, amount, date, source_id are required' }, 400)
+  }
+
+  const old = await c.env.DB.prepare(
+    'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+  ).bind(id, userId).first() as {
+    type: string; amount: number; source_id: number
+  } | null
+
+  if (!old) return c.json({ error: 'Not found' }, 404)
+
+  // Verify new source belongs to user
+  const newSource = await c.env.DB.prepare(
+    'SELECT id FROM sources WHERE id = ? AND user_id = ?'
+  ).bind(body.source_id, userId).first()
+  if (!newSource) return c.json({ error: 'Source not found' }, 404)
+
+  // Reverse old balance effect on old source
+  const oldDelta = old.type === 'income' ? -old.amount : old.amount
+  await c.env.DB.prepare(
+    'UPDATE sources SET balance = balance + ? WHERE id = ? AND user_id = ?'
+  ).bind(oldDelta, old.source_id, userId).run()
+
+  // Apply new balance effect on new source
+  const newDelta = old.type === 'income' ? body.amount : -body.amount
+  await c.env.DB.prepare(
+    'UPDATE sources SET balance = balance + ? WHERE id = ? AND user_id = ?'
+  ).bind(newDelta, body.source_id, userId).run()
+
+  const updated = await c.env.DB.prepare(`
+    UPDATE transactions
+    SET title = ?, description = ?, amount = ?, date = ?, category_id = ?, source_id = ?
+    WHERE id = ? AND user_id = ?
+    RETURNING *
+  `).bind(
+    body.title,
+    body.description ?? null,
+    body.amount,
+    body.date,
+    body.category_id ?? null,
+    body.source_id,
+    id,
+    userId
+  ).first()
+
+  return c.json(updated)
+})
+
 // DELETE /api/transactions/:id
 transactions.delete('/:id', async (c) => {
   const userId = c.get('userId')
