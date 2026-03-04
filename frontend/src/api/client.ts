@@ -51,6 +51,10 @@ export const api = {
   getTransfers: () => request<Transfer[]>('/api/transfers'),
   createTransfer: (data: CreateTransferData) =>
     request<Transfer>('/api/transfers', { method: 'POST', body: JSON.stringify(data) }),
+  updateTransfer: (id: number, data: CreateTransferData) =>
+    request<Transfer>(`/api/transfers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTransfer: (id: number) =>
+    request<{ ok: boolean }>(`/api/transfers/${id}`, { method: 'DELETE' }),
 
   // Dashboard
   getDashboard: () => request<DashboardData>('/api/dashboard'),

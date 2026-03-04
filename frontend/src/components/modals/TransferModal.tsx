@@ -1,33 +1,37 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
-import { api, Source } from '../../api/client'
+import { api, Source, Transfer } from '../../api/client'
 import { format } from 'date-fns'
 
 interface TransferModalProps {
   onClose: () => void
   onSuccess: () => void
+  transfer?: Transfer  // if provided, modal is in edit mode
 }
 
 const inputClass = "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
 
-export default function TransferModal({ onClose, onSuccess }: TransferModalProps) {
+export default function TransferModal({ onClose, onSuccess, transfer }: TransferModalProps) {
+  const isEdit = !!transfer
   const [sources, setSources] = useState<Source[]>([])
-  const [fromId, setFromId] = useState<number | ''>('')
-  const [toId, setToId] = useState<number | ''>('')
-  const [amount, setAmount] = useState('')
-  const [fee, setFee] = useState('0')
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [note, setNote] = useState('')
+  const [fromId, setFromId] = useState<number | ''>(transfer?.from_source_id ?? '')
+  const [toId, setToId] = useState<number | ''>(transfer?.to_source_id ?? '')
+  const [amount, setAmount] = useState(transfer ? String(transfer.amount) : '')
+  const [fee, setFee] = useState(transfer ? String(transfer.fee) : '0')
+  const [date, setDate] = useState(transfer?.date ?? format(new Date(), 'yyyy-MM-dd'))
+  const [note, setNote] = useState(transfer?.note ?? '')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     api.getSources().then(s => {
       setSources(s)
-      if (s.length >= 1) setFromId(s[0].id)
-      if (s.length >= 2) setToId(s[1].id)
+      if (!isEdit) {
+        if (s.length >= 1) setFromId(s[0].id)
+        if (s.length >= 2) setToId(s[1].id)
+      }
     })
-  }, [])
+  }, [isEdit])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,14 +40,19 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
     setSaving(true)
     setError('')
     try {
-      await api.createTransfer({
+      const data = {
         from_source_id: fromId as number,
         to_source_id: toId as number,
         amount: parseFloat(amount),
         fee: parseFloat(fee) || 0,
         date,
         note: note || undefined,
-      })
+      }
+      if (isEdit) {
+        await api.updateTransfer(transfer.id, data)
+      } else {
+        await api.createTransfer(data)
+      }
       onSuccess()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to save')
@@ -56,7 +65,9 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Transfer Money</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {isEdit ? 'Edit Transfer' : 'Transfer Money'}
+          </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><X size={20} /></button>
         </div>
 
@@ -127,7 +138,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
             </button>
             <button type="submit" disabled={saving}
               className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium disabled:opacity-50">
-              {saving ? 'Transferring…' : 'Transfer'}
+              {saving ? (isEdit ? 'Saving…' : 'Transferring…') : (isEdit ? 'Save Changes' : 'Transfer')}
             </button>
           </div>
         </form>
