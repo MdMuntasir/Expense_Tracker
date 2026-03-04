@@ -50,15 +50,16 @@ export default function Sources() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowTransfer(true)}
-            className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            <ArrowLeftRight size={15} /> Transfer
+            <ArrowLeftRight size={15} />
+            <span className="hidden sm:inline">Transfer</span>
           </button>
           <button
             onClick={() => setShowAdd(true)}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium"
+            className="px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium"
           >
-            + Add Source
+            + <span className="hidden sm:inline">Add </span>Source
           </button>
         </div>
       </div>

@@ -17,23 +17,23 @@ export default function Header({ onAddIncome, onAddExpense }: HeaderProps) {
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-      <h1 className="text-xl font-bold text-gray-900">Expense Tracker</h1>
+    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between">
+      <h1 className="text-lg sm:text-xl font-bold text-gray-900">Expense Tracker</h1>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onAddIncome}
-          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Plus size={16} />
-          Income
+          <span className="hidden sm:inline">Income</span>
         </button>
         <button
           onClick={onAddExpense}
-          className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Minus size={16} />
-          Expense
+          <span className="hidden sm:inline">Expense</span>
         </button>
 
         <div className="flex items-center gap-2 ml-2">

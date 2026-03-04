@@ -23,7 +23,7 @@ export default function Layout({ children }: LayoutProps) {
           onAddIncome={() => setShowIncome(true)}
           onAddExpense={() => setShowExpense(true)}
         />
-        <main className="flex-1 overflow-y-auto p-6" key={refreshKey}>
+        <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6" key={refreshKey}>
           {children}
         </main>
       </div>
