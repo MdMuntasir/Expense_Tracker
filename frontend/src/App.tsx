@@ -5,7 +5,6 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
 import Sources from './pages/Sources'
-import Categories from './pages/Categories'
 import FixedExpenses from './pages/FixedExpenses'
 import Layout from './components/layout/Layout'
 
@@ -73,7 +72,6 @@ export default function App() {
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/transactions" element={<Transactions />} />
                     <Route path="/sources" element={<Sources />} />
-                    <Route path="/categories" element={<Categories />} />
                     <Route path="/fixed-expenses" element={<FixedExpenses />} />
                   </Routes>
                 </Layout>

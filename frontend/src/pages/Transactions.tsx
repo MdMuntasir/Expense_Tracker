@@ -4,8 +4,9 @@ import { format, parseISO } from 'date-fns'
 import { Trash2, Pencil, Filter, Plus, ArrowRight } from 'lucide-react'
 import EditTransactionModal from '../components/modals/EditTransactionModal'
 import TransferModal from '../components/modals/TransferModal'
+import AddCategoryModal from '../components/modals/AddCategoryModal'
 
-type Tab = 'transactions' | 'transfers'
+type Tab = 'transactions' | 'transfers' | 'categories'
 
 export default function Transactions() {
   const [tab, setTab] = useState<Tab>('transactions')
@@ -32,6 +33,9 @@ export default function Transactions() {
   const [showCreateTransfer, setShowCreateTransfer] = useState(false)
   const [editingTransfer, setEditingTransfer] = useState<Transfer | null>(null)
 
+  // Categories state
+  const [showAddCategory, setShowAddCategory] = useState(false)
+
   const fetchTransactions = useCallback(() => {
     setTxLoading(true)
     const params: Record<string, string> = { limit: String(limit), offset: String(offset) }
@@ -52,12 +56,26 @@ export default function Transactions() {
       .finally(() => setTrLoading(false))
   }, [])
 
+  function fetchCategories() {
+    api.getCategories().then(setCategories)
+  }
+
   useEffect(() => {
     Promise.all([api.getCategories(), api.getSources()]).then(([cats, srcs]) => {
       setCategories(cats)
       setSources(srcs)
     })
   }, [])
+
+  async function handleDeleteCategory(id: number) {
+    if (!confirm('Delete this category?')) return
+    try {
+      await api.deleteCategory(id)
+      fetchCategories()
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to delete')
+    }
+  }
 
   useEffect(() => { fetchTransactions() }, [fetchTransactions])
   useEffect(() => { fetchTransfers() }, [fetchTransfers])
@@ -93,21 +111,34 @@ export default function Transactions() {
             New Transfer
           </button>
         )}
+        {tab === 'categories' && (
+          <button
+            onClick={() => setShowAddCategory(true)}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <Plus size={16} />
+            Add Category
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700">
-        {(['transactions', 'transfers'] as Tab[]).map(t => (
+        {([
+          { key: 'transactions', label: 'Transactions' },
+          { key: 'transfers', label: 'Transfers' },
+          { key: 'categories', label: 'Categories' },
+        ] as { key: Tab; label: string }[]).map(({ key, label }) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-              tab === t
+            key={key}
+            onClick={() => setTab(key)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              tab === key
                 ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
                 : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
-            {t}
+            {label}
           </button>
         ))}
       </div>
@@ -291,6 +322,34 @@ export default function Transactions() {
         </div>
       )}
 
+      {tab === 'categories' && (
+        categories.length === 0 ? (
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 py-12 text-center text-gray-400 text-sm">
+            No categories yet
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {categories.map(cat => (
+              <div
+                key={cat.id}
+                className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{cat.name}</span>
+                </div>
+                <button
+                  onClick={() => handleDeleteCategory(cat.id)}
+                  className="text-gray-200 dark:text-gray-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
       {editing && (
         <EditTransactionModal
           transaction={editing}
@@ -311,6 +370,13 @@ export default function Transactions() {
           transfer={editingTransfer}
           onClose={() => setEditingTransfer(null)}
           onSuccess={() => { setEditingTransfer(null); fetchTransfers() }}
+        />
+      )}
+
+      {showAddCategory && (
+        <AddCategoryModal
+          onClose={() => setShowAddCategory(false)}
+          onSuccess={() => { setShowAddCategory(false); fetchCategories() }}
         />
       )}
     </div>

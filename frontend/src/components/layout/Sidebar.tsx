@@ -1,12 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, ArrowLeftRight, Wallet, Tag, CalendarClock } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, Wallet, CalendarClock } from 'lucide-react'
 
 const links = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/transactions', label: 'Records', icon: ArrowLeftRight, end: false },
-  { to: '/sources', label: 'Sources', icon: Wallet, end: false },
-  { to: '/categories', label: 'Categories', icon: Tag, end: false },
-  { to: '/fixed-expenses', label: 'Fixed Expenses', icon: CalendarClock, end: false },
+  { to: '/', label: 'Dashboard', mobileLabel: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/transactions', label: 'Records', mobileLabel: 'Records', icon: ArrowLeftRight, end: false },
+  { to: '/sources', label: 'Sources', mobileLabel: 'Sources', icon: Wallet, end: false },
+  { to: '/fixed-expenses', label: 'Fixed Expenses', mobileLabel: 'Fixed', icon: CalendarClock, end: false },
 ]
 
 export default function Sidebar() {
@@ -42,7 +41,7 @@ export default function Sidebar() {
 
       {/* Mobile bottom navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex">
-        {links.map(({ to, label, icon: Icon, end }) => (
+        {links.map(({ to, label, mobileLabel, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
@@ -54,7 +53,7 @@ export default function Sidebar() {
             }
           >
             <Icon size={20} />
-            {label}
+            {mobileLabel}
           </NavLink>
         ))}
       </nav>
