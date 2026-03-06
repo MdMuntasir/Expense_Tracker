@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
 import Sources from './pages/Sources'
 import FixedExpenses from './pages/FixedExpenses'
+import Calculation from './pages/Calculation'
 import Layout from './components/layout/Layout'
 
 interface AuthContextValue {
@@ -73,6 +74,7 @@ export default function App() {
                     <Route path="/transactions" element={<Transactions />} />
                     <Route path="/sources" element={<Sources />} />
                     <Route path="/fixed-expenses" element={<FixedExpenses />} />
+                    <Route path="/calculation" element={<Calculation />} />
                   </Routes>
                 </Layout>
               </RequireAuth>

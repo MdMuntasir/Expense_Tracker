@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, ArrowLeftRight, Wallet, CalendarClock } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, Wallet, CalendarClock, Calculator } from 'lucide-react'
 
 const links = [
   { to: '/', label: 'Dashboard', mobileLabel: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/transactions', label: 'Records', mobileLabel: 'Records', icon: ArrowLeftRight, end: false },
   { to: '/sources', label: 'Sources', mobileLabel: 'Sources', icon: Wallet, end: false },
   { to: '/fixed-expenses', label: 'Fixed Expenses', mobileLabel: 'Fixed', icon: CalendarClock, end: false },
+  { to: '/calculation', label: 'Calculation', mobileLabel: 'Calc', icon: Calculator, end: false },
 ]
 
 export default function Sidebar() {
