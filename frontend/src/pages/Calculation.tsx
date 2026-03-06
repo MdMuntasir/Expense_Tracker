@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calculator, Target, CreditCard, Users, Percent, TrendingUp } from 'lucide-react'
+import { api } from '../api/client'
 
 type CalcTab = 'daily-budget' | 'savings-goal' | 'emi' | 'split' | 'percentage' | 'net-worth'
 
@@ -51,6 +52,16 @@ function DailyBudget() {
   const [balance, setBalance] = useState('')
   const [salaryDate, setSalaryDate] = useState('')
   const [fixedMonthly, setFixedMonthly] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.getDashboard()
+      .then(data => {
+        setBalance(data.totalBalance.toString())
+        setFixedMonthly(data.fixedExpensesTotal.toString())
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   const compute = () => {
     const bal = parseFloat(balance)
@@ -73,6 +84,11 @@ function DailyBudget() {
         <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Daily Budget Calculator</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Find out how much you can safely spend each day until your next salary.</p>
       </div>
+      {loading ? (
+        <p className="text-sm text-gray-400 dark:text-gray-500 animate-pulse">Fetching your balance and fixed expenses…</p>
+      ) : (
+        <p className="text-xs text-indigo-600 dark:text-indigo-400">Balance and fixed expenses auto-filled from your account. You can edit them below.</p>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InputField label="Current Balance (৳)" value={balance} onChange={setBalance} placeholder="e.g. 15000" />
         <InputField label="Next Salary Date" value={salaryDate} onChange={setSalaryDate} type="date" min={today} />
@@ -81,7 +97,7 @@ function DailyBudget() {
           value={fixedMonthly}
           onChange={setFixedMonthly}
           placeholder="e.g. 5000"
-          hint="Rent, subscriptions, bills — deducted before splitting"
+          hint="From your Fixed Expenses — edit if needed"
         />
       </div>
       {result ? (
