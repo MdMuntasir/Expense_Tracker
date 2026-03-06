@@ -91,7 +91,6 @@ cd frontend && npm run dev   # starts the frontend at localhost:5173
 ```bash
 npm run deploy
 ```
-
 ---
 
 ## License
