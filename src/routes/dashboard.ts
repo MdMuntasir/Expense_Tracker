@@ -133,7 +133,7 @@ dashboard.get('/', async (c) => {
     recentTransactions: recentTx.results,
     fixedExpensesTotal: fixedExpAgg.total,
     fixedExpensesCount: fixedExpAgg.count,
-    availableBalance: balanceResult.total - fixedExpAgg.total,
+    availableBalance: balanceResult.total - fixedExpAgg.total - currentSavingsTarget,
     fixedExpenses: fixedExpList.results,
     currentSavingsTarget,
     todayExpenses: todayAgg.total,

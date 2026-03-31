@@ -59,8 +59,8 @@ export default function Dashboard() {
             <span className="text-sm text-gray-500 dark:text-gray-400">Available</span>
           </div>
           <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">৳{data.availableBalance.toLocaleString()}</p>
-          {data.fixedExpensesCount > 0 && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">৳{data.fixedExpensesTotal.toLocaleString()} reserved</p>
+          {(data.fixedExpensesCount > 0 || data.currentSavingsTarget > 0) && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">৳{(data.fixedExpensesTotal + data.currentSavingsTarget).toLocaleString()} reserved</p>
           )}
         </div>
 
@@ -85,8 +85,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Daily Budget cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Daily Budget cards — only for monthly/custom modes */}
+      {(mode === 'monthly' || mode === 'custom') && <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Daily Allowance */}
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-blue-200 dark:border-blue-800 p-5">
           <div className="flex items-center gap-3 mb-3">
@@ -164,7 +164,7 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
