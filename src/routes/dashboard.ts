@@ -117,14 +117,21 @@ dashboard.get('/', async (c) => {
     WHERE user_id = ? AND type = 'expense' AND date = date('now')
   `).bind(userId).first() as { total: number }
 
-  // Remaining days in current month (including today)
-  const daysAgg = await c.env.DB.prepare(`
-    SELECT
-      CAST(strftime('%d', date('now', 'start of month', '+1 month', '-1 day')) AS INTEGER) -
-      CAST(strftime('%d', 'now') AS INTEGER) + 1 as remaining_days
-  `).first() as { remaining_days: number }
-
-  const remainingDays = Math.max(1, daysAgg.remaining_days)
+  // Remaining days: from today to the period end date (inclusive), or real month end if no range
+  let remainingDays: number
+  if (to) {
+    const daysAgg = await c.env.DB.prepare(`
+      SELECT CAST(julianday(?) - julianday(date('now')) AS INTEGER) + 1 as remaining_days
+    `).bind(to).first() as { remaining_days: number }
+    remainingDays = Math.max(1, daysAgg.remaining_days)
+  } else {
+    const daysAgg = await c.env.DB.prepare(`
+      SELECT
+        CAST(strftime('%d', date('now', 'start of month', '+1 month', '-1 day')) AS INTEGER) -
+        CAST(strftime('%d', 'now') AS INTEGER) + 1 as remaining_days
+    `).first() as { remaining_days: number }
+    remainingDays = Math.max(1, daysAgg.remaining_days)
+  }
 
   return c.json({
     totalBalance: balanceResult.total,
