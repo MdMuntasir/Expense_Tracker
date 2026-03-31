@@ -8,6 +8,7 @@ import transactionsRoutes from './routes/transactions'
 import transfersRoutes from './routes/transfers'
 import dashboardRoutes from './routes/dashboard'
 import fixedExpensesRoutes from './routes/fixedExpenses'
+import savingsRoutes from './routes/savings'
 
 type Env = {
   DB: D1Database
@@ -37,6 +38,7 @@ app.route('/api/transactions', transactionsRoutes)
 app.route('/api/transfers', transfersRoutes)
 app.route('/api/dashboard', dashboardRoutes)
 app.route('/api/fixed-expenses', fixedExpensesRoutes)
+app.route('/api/savings', savingsRoutes)
 
 // Serve frontend assets for all non-API routes, fallback to index.html for SPA routing
 app.get('*', async (c) => {

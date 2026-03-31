@@ -42,6 +42,8 @@ export const api = {
   // Transactions
   getTransactions: (params?: TransactionQuery) =>
     request<Transaction[]>('/api/transactions?' + new URLSearchParams(params as Record<string, string>).toString()),
+  getTransactionsSummary: (params?: Omit<TransactionQuery, 'limit' | 'offset'>) =>
+    request<{ totalIncome: number; totalExpense: number }>('/api/transactions/summary?' + new URLSearchParams(params as Record<string, string>).toString()),
   createTransaction: (data: CreateTransactionData) =>
     request<Transaction>('/api/transactions', { method: 'POST', body: JSON.stringify(data) }),
   updateTransaction: (id: number, data: Omit<CreateTransactionData, 'type'>) =>
@@ -78,6 +80,17 @@ export const api = {
     request<{ ok: boolean }>(`/api/fixed-expenses/${id}`, { method: 'DELETE' }),
   payFixedExpense: (id: number) =>
     request<{ ok: boolean }>(`/api/fixed-expenses/${id}/pay`, { method: 'POST' }),
+
+  // Savings
+  getSavings: () => request<Saving[]>('/api/savings'),
+  createSaving: (data: { label: string; amount: number; month: string; notes?: string }) =>
+    request<Saving>('/api/savings', { method: 'POST', body: JSON.stringify(data) }),
+  updateSaving: (id: number, data: { label?: string; amount?: number; month?: string; notes?: string | null }) =>
+    request<Saving>(`/api/savings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSaving: (id: number) =>
+    request<{ ok: boolean }>(`/api/savings/${id}`, { method: 'DELETE' }),
+  transferSaving: (id: number, data: { source_id: number; date: string }) =>
+    request<{ ok: boolean }>(`/api/savings/${id}/transfer`, { method: 'POST', body: JSON.stringify(data) }),
 }
 
 // Types
@@ -200,6 +213,19 @@ export interface CreateSourceData {
   type: 'cash' | 'bank' | 'card' | 'mobile'
   details?: Record<string, string>
   balance?: number
+}
+
+export interface Saving {
+  id: number
+  user_id: string
+  label: string
+  amount: number
+  month: string
+  notes: string | null
+  transferred_source_id: number | null
+  transferred_source_name: string | null
+  transferred_at: string | null
+  created_at: string
 }
 
 export interface CreateTransferData {

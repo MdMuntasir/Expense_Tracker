@@ -10,6 +10,30 @@ type Variables = {
 
 const transactions = new Hono<{ Bindings: Env; Variables: Variables }>()
 
+// GET /api/transactions/summary
+transactions.get('/summary', async (c) => {
+  const userId = c.get('userId')
+  const { type, category_id, source_id, from, to } = c.req.query()
+
+  let query = `
+    SELECT
+      COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as totalIncome,
+      COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as totalExpense
+    FROM transactions
+    WHERE user_id = ?
+  `
+  const params: (string | number)[] = [userId]
+
+  if (type) { query += ' AND type = ?'; params.push(type) }
+  if (category_id) { query += ' AND category_id = ?'; params.push(category_id) }
+  if (source_id) { query += ' AND source_id = ?'; params.push(source_id) }
+  if (from) { query += ' AND date >= ?'; params.push(from) }
+  if (to) { query += ' AND date <= ?'; params.push(to) }
+
+  const row = await c.env.DB.prepare(query).bind(...params).first() as { totalIncome: number; totalExpense: number }
+  return c.json({ totalIncome: row.totalIncome, totalExpense: row.totalExpense })
+})
+
 // GET /api/transactions
 transactions.get('/', async (c) => {
   const userId = c.get('userId')

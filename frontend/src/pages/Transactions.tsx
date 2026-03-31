@@ -28,6 +28,10 @@ export default function Transactions() {
   const [to, setTo] = useState(toDate ?? '')
   const [offset, setOffset] = useState(0)
 
+  // Summary totals
+  const [totalIncome, setTotalIncome] = useState(0)
+  const [totalExpense, setTotalExpense] = useState(0)
+
   // Sync local date filters with global date range context
   useEffect(() => {
     setFrom(fromDate ?? '')
@@ -47,15 +51,21 @@ export default function Transactions() {
 
   const fetchTransactions = useCallback(() => {
     setTxLoading(true)
-    const params: Record<string, string> = { limit: String(limit), offset: String(offset) }
-    if (type) params.type = type
-    if (categoryId) params.category_id = categoryId
-    if (sourceId) params.source_id = sourceId
-    if (from) params.from = from
-    if (to) params.to = to
-    api.getTransactions(params)
-      .then(setTransactions)
-      .finally(() => setTxLoading(false))
+    const filterParams: Record<string, string> = {}
+    if (type) filterParams.type = type
+    if (categoryId) filterParams.category_id = categoryId
+    if (sourceId) filterParams.source_id = sourceId
+    if (from) filterParams.from = from
+    if (to) filterParams.to = to
+    const params = { ...filterParams, limit: String(limit), offset: String(offset) }
+    Promise.all([
+      api.getTransactions(params),
+      api.getTransactionsSummary(filterParams),
+    ]).then(([txs, summary]) => {
+      setTransactions(txs)
+      setTotalIncome(summary.totalIncome)
+      setTotalExpense(summary.totalExpense)
+    }).finally(() => setTxLoading(false))
   }, [type, categoryId, sourceId, from, to, offset])
 
   const fetchTransfers = useCallback(() => {
@@ -181,6 +191,18 @@ export default function Transactions() {
                 Clear filters
               </button>
             )}
+          </div>
+
+          {/* Summary */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800 px-4 py-3 flex items-center justify-between">
+              <span className="text-sm font-medium text-green-700 dark:text-green-400">Total Income</span>
+              <span className="text-base font-semibold text-green-600 dark:text-green-400">+৳{totalIncome.toLocaleString()}</span>
+            </div>
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 px-4 py-3 flex items-center justify-between">
+              <span className="text-sm font-medium text-red-700 dark:text-red-400">Total Expense</span>
+              <span className="text-base font-semibold text-red-500 dark:text-red-400">-৳{totalExpense.toLocaleString()}</span>
+            </div>
           </div>
 
           {/* Transactions Table */}
