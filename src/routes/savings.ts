@@ -77,6 +77,42 @@ savings.put('/:id', async (c) => {
   return c.json(updated)
 })
 
+// POST /api/savings/:id/transfer — create income transaction from saving amount, then delete the saving
+savings.post('/:id/transfer', async (c) => {
+  const userId = c.get('userId')
+  const id = Number(c.req.param('id'))
+  const body = await c.req.json() as { source_id: number; date: string }
+
+  if (!body.source_id || !body.date) {
+    return c.json({ error: 'source_id and date are required' }, 400)
+  }
+
+  const saving = await c.env.DB.prepare(
+    'SELECT * FROM savings WHERE id = ? AND user_id = ?'
+  ).bind(id, userId).first() as { id: number; title: string; amount: number } | null
+
+  if (!saving) return c.json({ error: 'Not found' }, 404)
+
+  const source = await c.env.DB.prepare(
+    'SELECT id FROM sources WHERE id = ? AND user_id = ?'
+  ).bind(body.source_id, userId).first()
+
+  if (!source) return c.json({ error: 'Source not found' }, 404)
+
+  await c.env.DB.prepare(`
+    INSERT INTO transactions (user_id, type, title, amount, date, source_id)
+    VALUES (?, 'income', ?, ?, ?, ?)
+  `).bind(userId, saving.title, saving.amount, body.date, body.source_id).run()
+
+  await c.env.DB.prepare(
+    'UPDATE sources SET balance = balance + ? WHERE id = ? AND user_id = ?'
+  ).bind(saving.amount, body.source_id, userId).run()
+
+  await c.env.DB.prepare('DELETE FROM savings WHERE id = ? AND user_id = ?').bind(id, userId).run()
+
+  return c.json({ ok: true })
+})
+
 // DELETE /api/savings/:id
 savings.delete('/:id', async (c) => {
   const userId = c.get('userId')

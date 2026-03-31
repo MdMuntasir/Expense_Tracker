@@ -48,7 +48,7 @@ export default function TransferSavingModal({ saving, onClose, onSuccess }: Prop
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Transfer to Source</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-              Deposit ৳{saving.amount.toLocaleString()} from "{saving.label}"
+              Deposit ৳{saving.amount.toLocaleString()} from "{saving.title}"
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">

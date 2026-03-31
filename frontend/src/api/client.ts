@@ -89,6 +89,8 @@ export const api = {
     request<Saving>(`/api/savings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteSaving: (id: number) =>
     request<{ ok: boolean }>(`/api/savings/${id}`, { method: 'DELETE' }),
+  transferSaving: (id: number, data: { source_id: number; date: string }) =>
+    request<{ ok: boolean }>(`/api/savings/${id}/transfer`, { method: 'POST', body: JSON.stringify(data) }),
 }
 
 // Types
