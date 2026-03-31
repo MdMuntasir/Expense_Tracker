@@ -159,6 +159,9 @@ export interface DashboardData {
   fixedExpensesCount: number
   availableBalance: number
   fixedExpenses: FixedExpense[]
+  currentMonthSavingsTarget: number
+  todayExpenses: number
+  remainingDaysInMonth: number
 }
 
 export interface FixedExpense {

@@ -97,6 +97,30 @@ dashboard.get('/', async (c) => {
     ORDER BY fe.next_due_date ASC, fe.created_at DESC
   `).bind(userId).all()
 
+  // Current month's pending savings target (not yet transferred)
+  const savingsAgg = await c.env.DB.prepare(`
+    SELECT COALESCE(SUM(amount), 0) as total
+    FROM savings
+    WHERE user_id = ? AND month = strftime('%Y-%m', 'now') AND transferred_source_id IS NULL
+  `).bind(userId).first() as { total: number }
+
+  // Today's total expenses
+  const todayAgg = await c.env.DB.prepare(`
+    SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE user_id = ? AND type = 'expense' AND date = date('now')
+  `).bind(userId).first() as { total: number }
+
+  // Remaining days in current month (including today)
+  const daysAgg = await c.env.DB.prepare(`
+    SELECT
+      CAST(strftime('%d', date('now', 'start of month', '+1 month', '-1 day')) AS INTEGER) -
+      CAST(strftime('%d', 'now') AS INTEGER) + 1 as remaining_days
+  `).first() as { remaining_days: number }
+
+  const remainingDays = Math.max(1, daysAgg.remaining_days)
+  const currentMonthSavingsTarget = savingsAgg.total
+
   return c.json({
     totalBalance: balanceResult.total,
     monthlyData: monthlyData.results,
@@ -106,6 +130,9 @@ dashboard.get('/', async (c) => {
     fixedExpensesCount: fixedExpAgg.count,
     availableBalance: balanceResult.total - fixedExpAgg.total,
     fixedExpenses: fixedExpList.results,
+    currentMonthSavingsTarget,
+    todayExpenses: todayAgg.total,
+    remainingDaysInMonth: remainingDays,
   })
 })
 
