@@ -12,22 +12,20 @@ interface Props {
 const inputClass = "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
 
 export default function AddSavingModal({ saving, onClose, onSuccess }: Props) {
-  const currentMonth = format(new Date(), 'yyyy-MM')
-
-  const [label, setLabel] = useState(saving?.label ?? '')
+  const [title, setTitle] = useState(saving?.title ?? '')
   const [amount, setAmount] = useState(saving?.amount.toString() ?? '')
-  const [month, setMonth] = useState(saving?.month ?? currentMonth)
+  const [targetDate, setTargetDate] = useState(saving?.target_date ?? format(new Date(), 'yyyy-MM-dd'))
   const [notes, setNotes] = useState(saving?.notes ?? '')
   const [error, setError] = useState('')
-  const [saving_, setSaving_] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!label || !amount || !month) return
-    setSaving_(true)
+    if (!title || !amount || !targetDate) return
+    setSubmitting(true)
     setError('')
     try {
-      const data = { label, amount: parseFloat(amount), month, notes: notes || undefined }
+      const data = { title, amount: parseFloat(amount), target_date: targetDate, notes: notes || undefined }
       if (saving) {
         await api.updateSaving(saving.id, data)
       } else {
@@ -37,7 +35,7 @@ export default function AddSavingModal({ saving, onClose, onSuccess }: Props) {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
-      setSaving_(false)
+      setSubmitting(false)
     }
   }
 
@@ -46,7 +44,7 @@ export default function AddSavingModal({ saving, onClose, onSuccess }: Props) {
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {saving ? 'Edit Saving' : 'Add Saving'}
+            {saving ? 'Edit Saving Goal' : 'Add Saving Goal'}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <X size={20} />
@@ -59,12 +57,12 @@ export default function AddSavingModal({ saving, onClose, onSuccess }: Props) {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Label *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title *</label>
             <input
               className={inputClass}
-              placeholder="e.g. March 2026 Savings"
-              value={label}
-              onChange={e => setLabel(e.target.value)}
+              placeholder="e.g. Emergency Fund, Trip to Cox's Bazar"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
               required
             />
           </div>
@@ -82,12 +80,12 @@ export default function AddSavingModal({ saving, onClose, onSuccess }: Props) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Month *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Date *</label>
               <input
-                type="month"
+                type="date"
                 className={inputClass}
-                value={month}
-                onChange={e => setMonth(e.target.value)}
+                value={targetDate}
+                onChange={e => setTargetDate(e.target.value)}
                 required
               />
             </div>
@@ -111,10 +109,10 @@ export default function AddSavingModal({ saving, onClose, onSuccess }: Props) {
               Cancel
             </button>
             <button
-              type="submit" disabled={saving_}
+              type="submit" disabled={submitting}
               className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
             >
-              {saving_ ? 'Saving…' : saving ? 'Update' : 'Add Saving'}
+              {submitting ? 'Saving…' : saving ? 'Update' : 'Add Goal'}
             </button>
           </div>
         </form>

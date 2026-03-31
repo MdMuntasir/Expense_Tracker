@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { api, FixedExpense, Saving } from '../api/client'
-import { Plus, Pencil, Trash2, CheckCircle, CalendarClock, ChevronDown, PiggyBank, ArrowDownToLine } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle, CalendarClock, ChevronDown, PiggyBank } from 'lucide-react'
 import AddFixedExpenseModal from '../components/modals/AddFixedExpenseModal'
 import PayFixedExpenseModal from '../components/modals/PayFixedExpenseModal'
 import AddSavingModal from '../components/modals/AddSavingModal'
-import TransferSavingModal from '../components/modals/TransferSavingModal'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, isToday } from 'date-fns'
 
 const FREQ_LABELS: Record<string, string> = {
   'one-time': 'One-time',
@@ -36,7 +35,6 @@ export default function FixedExpenses() {
   const [savingsLoading, setSavingsLoading] = useState(true)
   const [showAddSaving, setShowAddSaving] = useState(false)
   const [editSaving, setEditSaving] = useState<Saving | null>(null)
-  const [transferSaving, setTransferSaving] = useState<Saving | null>(null)
 
   async function load() {
     setLoading(true)
@@ -74,9 +72,18 @@ export default function FixedExpenses() {
   }
 
   const totalReserved = items.reduce((sum, i) => sum + i.amount, 0)
-  const totalSavings = savings.reduce((sum, s) => sum + s.amount, 0)
-  const transferredSavings = savings.filter(s => s.transferred_source_id !== null)
-  const pendingSavings = savings.filter(s => s.transferred_source_id === null)
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const activeSavings = savings.filter(s => {
+    const d = parseISO(s.target_date)
+    return d >= today
+  })
+  const completedSavings = savings.filter(s => {
+    const d = parseISO(s.target_date)
+    return d < today
+  })
+  const totalActiveSavings = activeSavings.reduce((sum, s) => sum + s.amount, 0)
 
   return (
     <div className="space-y-6">
@@ -200,26 +207,27 @@ export default function FixedExpenses() {
             onClick={() => setShowAddSaving(true)}
             className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium"
           >
-            <Plus size={16} /> Add Saving
+            <Plus size={16} /> Add Saving Goal
           </button>
         </div>
 
-        {/* Total savings strip */}
-        <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-xl p-4 flex items-center gap-4">
-          <div className="p-2 bg-teal-100 dark:bg-teal-900/40 rounded-lg">
-            <PiggyBank size={20} className="text-teal-600 dark:text-teal-400" />
+        {/* Active savings summary strip */}
+        {activeSavings.length > 0 && (
+          <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-xl p-4 flex items-center gap-4">
+            <div className="p-2 bg-teal-100 dark:bg-teal-900/40 rounded-lg">
+              <PiggyBank size={20} className="text-teal-600 dark:text-teal-400" />
+            </div>
+            <div>
+              <p className="text-sm text-teal-700 dark:text-teal-400 font-medium">Active Savings Target</p>
+              <p className="text-2xl font-bold text-teal-800 dark:text-teal-300">
+                ৳{totalActiveSavings.toLocaleString()}
+                <span className="text-sm font-normal ml-2 text-teal-600 dark:text-teal-500">
+                  across {activeSavings.length} goal{activeSavings.length !== 1 ? 's' : ''}
+                </span>
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-teal-700 dark:text-teal-400 font-medium">Total Savings</p>
-            <p className="text-2xl font-bold text-teal-800 dark:text-teal-300">
-              ৳{totalSavings.toLocaleString()}
-              <span className="text-sm font-normal ml-2 text-teal-600 dark:text-teal-500">
-                across {savings.length} record{savings.length !== 1 ? 's' : ''}
-                {transferredSavings.length > 0 && ` · ${transferredSavings.length} transferred`}
-              </span>
-            </p>
-          </div>
-        </div>
+        )}
 
         {/* Savings list */}
         {savingsLoading ? (
@@ -227,81 +235,80 @@ export default function FixedExpenses() {
         ) : savings.length === 0 ? (
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-10 text-center">
             <PiggyBank size={32} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400 text-sm">No savings records yet</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">No saving goals yet</p>
             <button
               onClick={() => setShowAddSaving(true)}
               className="mt-3 text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400"
             >
-              Add your first saving
+              Add your first saving goal
             </button>
           </div>
         ) : (
           <div className="space-y-3">
-            {pendingSavings.length > 0 && (
+            {/* Active goals */}
+            {activeSavings.length > 0 && (
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800">
-                {pendingSavings.map(sv => (
-                  <div key={sv.id} className="flex items-center gap-4 px-5 py-4">
-                    <div className="w-3 h-3 rounded-full flex-shrink-0 bg-teal-400" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{sv.label}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                        {sv.month}
-                        {sv.notes && ` · ${sv.notes}`}
+                {activeSavings.map(sv => {
+                  const due = parseISO(sv.target_date)
+                  const dueSoon = isToday(due)
+                  return (
+                    <div key={sv.id} className="flex items-center gap-4 px-5 py-4">
+                      <div className="w-3 h-3 rounded-full flex-shrink-0 bg-teal-400" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{sv.title}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                          Target: {format(due, 'MMM d, yyyy')}
+                          {dueSoon && <span className="ml-1 text-amber-500 font-medium">· Due today</span>}
+                          {sv.notes && ` · ${sv.notes}`}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-teal-700 dark:text-teal-400 flex-shrink-0">
+                        ৳{sv.amount.toLocaleString()}
                       </p>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => setEditSaving(sv)}
+                          title="Edit"
+                          className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSaving(sv.id)}
+                          title="Delete"
+                          className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-sm font-bold text-teal-700 dark:text-teal-400 flex-shrink-0">
-                      ৳{sv.amount.toLocaleString()}
-                    </p>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <button
-                        onClick={() => setTransferSaving(sv)}
-                        title="Transfer to source"
-                        className="p-1.5 text-teal-500 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
-                      >
-                        <ArrowDownToLine size={16} />
-                      </button>
-                      <button
-                        onClick={() => setEditSaving(sv)}
-                        title="Edit"
-                        className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteSaving(sv.id)}
-                        title="Delete"
-                        className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 
-            {transferredSavings.length > 0 && (
+            {/* Completed (past target date) */}
+            {completedSavings.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-2 px-1">Transferred</p>
-                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800 opacity-70">
-                  {transferredSavings.map(sv => (
-                    <div key={sv.id} className="flex items-center gap-4 px-5 py-4">
-                      <div className="w-3 h-3 rounded-full flex-shrink-0 bg-gray-300 dark:bg-gray-600" />
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-2 px-1">Saved</p>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800">
+                  {completedSavings.map(sv => (
+                    <div key={sv.id} className="flex items-center gap-4 px-5 py-4 opacity-60">
+                      <CheckCircle size={14} className="text-teal-500 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{sv.label}</p>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{sv.title}</p>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                          {sv.month}
-                          {sv.transferred_source_name && ` · Deposited to ${sv.transferred_source_name}`}
-                          {sv.transferred_at && ` on ${format(parseISO(sv.transferred_at), 'MMM d, yyyy')}`}
+                          Saved by {format(parseISO(sv.target_date), 'MMM d, yyyy')}
+                          {sv.notes && ` · ${sv.notes}`}
                         </p>
                       </div>
-                      <p className="text-sm font-bold text-gray-500 dark:text-gray-400 flex-shrink-0">
+                      <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 flex-shrink-0">
                         ৳{sv.amount.toLocaleString()}
                       </p>
                       <button
                         onClick={() => handleDeleteSaving(sv.id)}
                         title="Delete"
-                        className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-300 dark:text-gray-700 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -352,13 +359,6 @@ export default function FixedExpenses() {
         />
       )}
 
-      {transferSaving && (
-        <TransferSavingModal
-          saving={transferSaving}
-          onClose={() => setTransferSaving(null)}
-          onSuccess={() => { setTransferSaving(null); loadSavings() }}
-        />
-      )}
     </div>
   )
 }

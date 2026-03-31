@@ -34,7 +34,7 @@ export default function Dashboard() {
   const chartTitle = isFiltered ? 'Income vs Expense (Period)' : 'Income vs Expense (Last 6 Months)'
 
   // Daily budget calculations
-  const spendableBalance = data.totalBalance - data.fixedExpensesTotal - data.currentMonthSavingsTarget
+  const spendableBalance = data.totalBalance - data.fixedExpensesTotal - data.currentSavingsTarget
   const dailyBudget = Math.max(0, spendableBalance / data.remainingDaysInMonth)
   const todayRemaining = Math.max(0, dailyBudget - data.todayExpenses)
   const todayOverspent = data.todayExpenses > dailyBudget
@@ -111,10 +111,10 @@ export default function Dashboard() {
               <span>Fixed expenses</span>
               <span className="text-amber-500">-৳{data.fixedExpensesTotal.toLocaleString()}</span>
             </div>
-            {data.currentMonthSavingsTarget > 0 && (
+            {data.currentSavingsTarget > 0 && (
               <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
                 <span>Savings target</span>
-                <span className="text-teal-500">-৳{data.currentMonthSavingsTarget.toLocaleString()}</span>
+                <span className="text-teal-500">-৳{data.currentSavingsTarget.toLocaleString()}</span>
               </div>
             )}
             <div className="flex justify-between text-xs font-medium text-gray-600 dark:text-gray-300 pt-1 border-t border-gray-100 dark:border-gray-800">

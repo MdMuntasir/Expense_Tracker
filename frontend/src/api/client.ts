@@ -83,14 +83,12 @@ export const api = {
 
   // Savings
   getSavings: () => request<Saving[]>('/api/savings'),
-  createSaving: (data: { label: string; amount: number; month: string; notes?: string }) =>
+  createSaving: (data: { title: string; amount: number; target_date: string; notes?: string }) =>
     request<Saving>('/api/savings', { method: 'POST', body: JSON.stringify(data) }),
-  updateSaving: (id: number, data: { label?: string; amount?: number; month?: string; notes?: string | null }) =>
+  updateSaving: (id: number, data: { title?: string; amount?: number; target_date?: string; notes?: string | null }) =>
     request<Saving>(`/api/savings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteSaving: (id: number) =>
     request<{ ok: boolean }>(`/api/savings/${id}`, { method: 'DELETE' }),
-  transferSaving: (id: number, data: { source_id: number; date: string }) =>
-    request<{ ok: boolean }>(`/api/savings/${id}/transfer`, { method: 'POST', body: JSON.stringify(data) }),
 }
 
 // Types
@@ -159,7 +157,7 @@ export interface DashboardData {
   fixedExpensesCount: number
   availableBalance: number
   fixedExpenses: FixedExpense[]
-  currentMonthSavingsTarget: number
+  currentSavingsTarget: number
   todayExpenses: number
   remainingDaysInMonth: number
 }
@@ -221,13 +219,10 @@ export interface CreateSourceData {
 export interface Saving {
   id: number
   user_id: string
-  label: string
+  title: string
   amount: number
-  month: string
+  target_date: string
   notes: string | null
-  transferred_source_id: number | null
-  transferred_source_name: string | null
-  transferred_at: string | null
   created_at: string
 }
 

@@ -97,12 +97,18 @@ dashboard.get('/', async (c) => {
     ORDER BY fe.next_due_date ASC, fe.created_at DESC
   `).bind(userId).all()
 
-  // Current month's pending savings target (not yet transferred)
-  const savingsAgg = await c.env.DB.prepare(`
-    SELECT COALESCE(SUM(amount), 0) as total
-    FROM savings
-    WHERE user_id = ? AND month = strftime('%Y-%m', 'now') AND transferred_source_id IS NULL
-  `).bind(userId).first() as { total: number }
+  // Active savings targets (target_date not yet passed)
+  let currentSavingsTarget = 0
+  try {
+    const savingsAgg = await c.env.DB.prepare(`
+      SELECT COALESCE(SUM(amount), 0) as total
+      FROM savings
+      WHERE user_id = ? AND target_date >= date('now')
+    `).bind(userId).first() as { total: number }
+    currentSavingsTarget = savingsAgg.total
+  } catch {
+    // savings table may not exist yet — migration pending
+  }
 
   // Today's total expenses
   const todayAgg = await c.env.DB.prepare(`
@@ -119,7 +125,6 @@ dashboard.get('/', async (c) => {
   `).first() as { remaining_days: number }
 
   const remainingDays = Math.max(1, daysAgg.remaining_days)
-  const currentMonthSavingsTarget = savingsAgg.total
 
   return c.json({
     totalBalance: balanceResult.total,
@@ -130,7 +135,7 @@ dashboard.get('/', async (c) => {
     fixedExpensesCount: fixedExpAgg.count,
     availableBalance: balanceResult.total - fixedExpAgg.total,
     fixedExpenses: fixedExpList.results,
-    currentMonthSavingsTarget,
+    currentSavingsTarget,
     todayExpenses: todayAgg.total,
     remainingDaysInMonth: remainingDays,
   })
