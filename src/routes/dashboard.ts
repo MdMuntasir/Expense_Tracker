@@ -10,30 +10,40 @@ type Variables = {
 
 const dashboard = new Hono<{ Bindings: Env; Variables: Variables }>()
 
-// GET /api/dashboard
+// GET /api/dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD
 dashboard.get('/', async (c) => {
   const userId = c.get('userId')
+  const from = c.req.query('from') || null
+  const to = c.req.query('to') || null
 
-  // Total balance across all sources
+  // Total balance across all sources (always current, not date-filtered)
   const balanceResult = await c.env.DB.prepare(
     'SELECT COALESCE(SUM(balance), 0) as total FROM sources WHERE user_id = ?'
   ).bind(userId).first() as { total: number }
 
-  // Monthly income/expense — last 6 months
-  const monthlyData = await c.env.DB.prepare(`
+  // Monthly income/expense — filtered by range if given, else last 6 months
+  let monthlyQuery = `
     SELECT
       strftime('%Y-%m', date) as month,
       SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
       SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense
     FROM transactions
-    WHERE user_id = ?
-      AND date >= date('now', '-5 months', 'start of month')
-    GROUP BY strftime('%Y-%m', date)
-    ORDER BY month ASC
-  `).bind(userId).all()
+    WHERE user_id = ?`
 
-  // Category spending — all time
-  const categoryData = await c.env.DB.prepare(`
+  const monthlyBinds: (string | number)[] = [userId]
+
+  if (from && to) {
+    monthlyQuery += ' AND date >= ? AND date <= ?'
+    monthlyBinds.push(from, to)
+  } else {
+    monthlyQuery += " AND date >= date('now', '-5 months', 'start of month')"
+  }
+  monthlyQuery += ' GROUP BY strftime(\'%Y-%m\', date) ORDER BY month ASC'
+
+  const monthlyData = await c.env.DB.prepare(monthlyQuery).bind(...monthlyBinds).all()
+
+  // Category spending — filtered by range if given, else all time
+  let catQuery = `
     SELECT
       COALESCE(c.name, 'Uncategorized') as category,
       COALESCE(c.color, '#6B7280') as color,
@@ -41,23 +51,37 @@ dashboard.get('/', async (c) => {
     FROM transactions t
     LEFT JOIN categories c ON t.category_id = c.id
     WHERE t.user_id = ?
-      AND t.type = 'expense'
-    GROUP BY t.category_id
-    ORDER BY amount DESC
-  `).bind(userId).all()
+      AND t.type = 'expense'`
 
-  // Recent 5 transactions
-  const recentTx = await c.env.DB.prepare(`
+  const catBinds: (string | number)[] = [userId]
+
+  if (from && to) {
+    catQuery += ' AND t.date >= ? AND t.date <= ?'
+    catBinds.push(from, to)
+  }
+  catQuery += ' GROUP BY t.category_id ORDER BY amount DESC'
+
+  const categoryData = await c.env.DB.prepare(catQuery).bind(...catBinds).all()
+
+  // Recent 5 transactions — filtered by range if given
+  let recentQuery = `
     SELECT t.*, c.name as category_name, c.color as category_color, s.name as source_name
     FROM transactions t
     LEFT JOIN categories c ON t.category_id = c.id
     LEFT JOIN sources s ON t.source_id = s.id
-    WHERE t.user_id = ?
-    ORDER BY t.date DESC, t.created_at DESC
-    LIMIT 5
-  `).bind(userId).all()
+    WHERE t.user_id = ?`
 
-  // Fixed expenses aggregation
+  const recentBinds: (string | number)[] = [userId]
+
+  if (from && to) {
+    recentQuery += ' AND t.date >= ? AND t.date <= ?'
+    recentBinds.push(from, to)
+  }
+  recentQuery += ' ORDER BY t.date DESC, t.created_at DESC LIMIT 5'
+
+  const recentTx = await c.env.DB.prepare(recentQuery).bind(...recentBinds).all()
+
+  // Fixed expenses aggregation (always current, not date-filtered)
   const fixedExpAgg = await c.env.DB.prepare(`
     SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count
     FROM fixed_expenses

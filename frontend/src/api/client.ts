@@ -59,7 +59,13 @@ export const api = {
     request<{ ok: boolean }>(`/api/transfers/${id}`, { method: 'DELETE' }),
 
   // Dashboard
-  getDashboard: () => request<DashboardData>('/api/dashboard'),
+  getDashboard: (from?: string | null, to?: string | null) => {
+    const params: Record<string, string> = {}
+    if (from) params.from = from
+    if (to) params.to = to
+    const qs = new URLSearchParams(params).toString()
+    return request<DashboardData>('/api/dashboard' + (qs ? '?' + qs : ''))
+  },
 
   // Fixed Expenses
   getFixedExpenses: (inactive?: boolean) =>

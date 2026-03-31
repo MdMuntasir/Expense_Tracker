@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect, createContext, useContext } from 'react'
 import { api, User } from './api/client'
+import { DateRangeProvider } from './context/DateRangeContext'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
@@ -60,6 +61,7 @@ export default function App() {
 
   return (
     <ThemeContext.Provider value={{ dark, toggle: () => setDark(d => !d) }}>
+    <DateRangeProvider>
     <AuthContext.Provider value={{ user, loading, setUser }}>
       <BrowserRouter>
         <Routes>
@@ -83,6 +85,7 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthContext.Provider>
+    </DateRangeProvider>
     </ThemeContext.Provider>
   )
 }

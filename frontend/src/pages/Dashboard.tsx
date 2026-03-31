@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api, DashboardData, FixedExpense } from '../api/client'
+import { useDateRange } from '../context/DateRangeContext'
 import MonthlyBarChart from '../components/charts/MonthlyBarChart'
 import CategoryBarChart from '../components/charts/CategoryBarChart'
 import { format, parseISO } from 'date-fns'
@@ -11,19 +12,26 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [payItem, setPayItem] = useState<FixedExpense | null>(null)
+  const { mode, fromDate, toDate } = useDateRange()
 
   function load() {
-    api.getDashboard()
+    setLoading(true)
+    api.getDashboard(fromDate, toDate)
       .then(setData)
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [fromDate, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className="text-gray-400 text-sm">Loading…</div>
   if (!data) return <div className="text-red-500 text-sm">Failed to load dashboard</div>
 
-  const currentMonth = data.monthlyData[data.monthlyData.length - 1]
+  const isFiltered = mode !== 'overall'
+  const periodIncome = data.monthlyData.reduce((sum, m) => sum + m.income, 0)
+  const periodExpense = data.monthlyData.reduce((sum, m) => sum + m.expense, 0)
+  const incomeLabel = isFiltered ? 'Period Income' : 'This Month Income'
+  const expenseLabel = isFiltered ? 'Period Expense' : 'This Month Expense'
+  const chartTitle = isFiltered ? 'Income vs Expense (Period)' : 'Income vs Expense (Last 6 Months)'
 
   return (
     <div className="space-y-6">
@@ -53,20 +61,20 @@ export default function Dashboard() {
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg"><TrendingUp size={18} className="text-green-600" /></div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">This Month Income</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{incomeLabel}</span>
           </div>
           <p className="text-2xl font-bold text-green-600">
-            ৳{(currentMonth?.income ?? 0).toLocaleString()}
+            ৳{periodIncome.toLocaleString()}
           </p>
         </div>
 
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-red-50 dark:bg-red-900/30 rounded-lg"><TrendingDown size={18} className="text-red-500" /></div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">This Month Expense</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{expenseLabel}</span>
           </div>
           <p className="text-2xl font-bold text-red-500">
-            ৳{(currentMonth?.expense ?? 0).toLocaleString()}
+            ৳{periodExpense.toLocaleString()}
           </p>
         </div>
       </div>
@@ -74,7 +82,7 @@ export default function Dashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Income vs Expense (Last 6 Months)</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{chartTitle}</h3>
           {data.monthlyData.length > 0 ? (
             <MonthlyBarChart data={data.monthlyData} />
           ) : (

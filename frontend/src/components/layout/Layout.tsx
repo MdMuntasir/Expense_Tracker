@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
+import DateRangeBar from './DateRangeBar'
 import AddIncomeModal from '../modals/AddIncomeModal'
 import AddExpenseModal from '../modals/AddExpenseModal'
 
@@ -23,6 +24,7 @@ export default function Layout({ children }: LayoutProps) {
           onAddIncome={() => setShowIncome(true)}
           onAddExpense={() => setShowExpense(true)}
         />
+        <DateRangeBar />
         <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6" key={refreshKey}>
           {children}
         </main>

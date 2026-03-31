@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api, Transaction, Transfer, Category, Source } from '../api/client'
+import { useDateRange } from '../context/DateRangeContext'
 import { format, parseISO } from 'date-fns'
 import { Trash2, Pencil, Filter, Plus, ArrowRight } from 'lucide-react'
 import EditTransactionModal from '../components/modals/EditTransactionModal'
@@ -10,6 +11,7 @@ type Tab = 'transactions' | 'transfers' | 'categories'
 
 export default function Transactions() {
   const [tab, setTab] = useState<Tab>('transactions')
+  const { fromDate, toDate } = useDateRange()
 
   // Transactions state
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -22,9 +24,16 @@ export default function Transactions() {
   const [type, setType] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [sourceId, setSourceId] = useState('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [from, setFrom] = useState(fromDate ?? '')
+  const [to, setTo] = useState(toDate ?? '')
   const [offset, setOffset] = useState(0)
+
+  // Sync local date filters with global date range context
+  useEffect(() => {
+    setFrom(fromDate ?? '')
+    setTo(toDate ?? '')
+    setOffset(0)
+  }, [fromDate, toDate])
   const limit = 20
 
   // Transfers state
@@ -93,7 +102,7 @@ export default function Transactions() {
   }
 
   function resetFilters() {
-    setType(''); setCategoryId(''); setSourceId(''); setFrom(''); setTo(''); setOffset(0)
+    setType(''); setCategoryId(''); setSourceId(''); setFrom(fromDate ?? ''); setTo(toDate ?? ''); setOffset(0)
   }
 
   const selectClass = "border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
